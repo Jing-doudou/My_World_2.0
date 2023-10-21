@@ -26,9 +26,9 @@ public class MainGame : MonoBehaviour
     public static UnitSpace[,,] unit;
     public List<UnitSpace> prefab;
     public static Dictionary<string, FaceInformation> Direction = new Dictionary<string, FaceInformation>();
-    public static int World_x = 20;
-    public static int World_y = 5;
-    public static int World_z = 20;
+    public static int World_x = 30;
+    public static int World_y = 10;
+    public static int World_z = 30;
 
     public Block target;
 
@@ -109,12 +109,13 @@ public class MainGame : MonoBehaviour
                 }
             }
         }
+        Debug.Log("泥土 创建完成");
     }
 
     private void CreatingTerrain()
     {
         //生成随机地点，随机大小，
-        int changeNum = UnityEngine.Random.Range(2, Math.Max(2, World_x / 4));
+        int changeNum = UnityEngine.Random.Range(2, Math.Max(2, World_x / 3));
         bool succ;
         {
             //生成山，记录地点
@@ -129,6 +130,7 @@ public class MainGame : MonoBehaviour
 
             }
         }
+        Debug.Log("山 创建完成");
         changeNum = UnityEngine.Random.Range(4, Math.Max(4, World_x / 2));
         succ = false;
         {
@@ -144,6 +146,7 @@ public class MainGame : MonoBehaviour
 
             }
         }
+        Debug.Log("洼地 创建完成");
     }
 
     private bool CreateMountainOnTopBlock()
@@ -152,39 +155,42 @@ public class MainGame : MonoBehaviour
         //随机的坐标
         int _x = UnityEngine.Random.Range(1, World_x - 1);
         int _z = UnityEngine.Random.Range(1, World_z - 1);
-        //此坐标的一列内
-        for (int j = 1; j < 2 * World_y - 1; j++)
+        int j = World_y - 1;
+        if (unit[_x,j,_z].unitType==UnitType.Block)
         {
-            //上面一块为空时
-            if (unit[_x, j, _z].unitType == UnitType.Null)
+            return false;
+        }
+        //创建一个圆形
+        int h = 0;//山的层数
+        int hTop = UnityEngine.Random.Range(4, 10);//山的层数
+        int r = UnityEngine.Random.Range(5, 10);
+        while (h < hTop)
+        {
+            r -= h;//山的半径
+            if (r == 0)
             {
-                //创建一个圆形
-                int h = 0;//山的高度
-                while (h < 4)
-                {
-                    int r = UnityEngine.Random.Range(5, 5) - h;//山的半径
-                    //通过x获得y的值
-                    int y1, y2;
-                    for (int i = -r; i <= r; i++)
-                    {
-                        ReturnY(i, r, out y1, out y2);
-                        //根据y对每一列进行实例化
-                        for (int k = y2; k <= y1; k++)
-                        {
-                            //如果是地图外时,在一个点的左侧开始创建，还会向上创建，所以需要判断四个方向是否越界
-                            if (_x + i >= World_x - 1 || _z + k >= World_z - 1 || _x + i < 1 || _z + k < 1 || j + h >= 2 * World_y - 1)
-                            {
-                                continue;
-                            }
-                            CreateBlock(_x + i, j + h, _z + k, 1);
-                        }
-                    }
-                    h++;
-                }
-                return true;
+                break;
             }
+            //通过x获得y的值
+            int y1, y2;
+            for (int i = -r; i <= r; i++)
+            {
+                ReturnY(i, r, out y1, out y2);
+                //根据y对每一列进行实例化
+                for (int k = y2; k <= y1; k++)
+                {
+                    //如果是地图外时,在一个点的左侧开始创建，还会向上创建，所以需要判断四个方向是否越界
+                    if (_x + i >= World_x - 1 || _z + k >= World_z - 1 || _x + i < 1 || _z + k < 1 || j + h >= 2 * World_y - 1)
+                    {
+                        continue;
+                    }
+                    CreateBlock(_x + i, j + h, _z + k, 1);
+                }
+            }
+            h++;
         }
         return true;
+
     }
     private void ReturnY(int x, int r, out int y1, out int y2)
     {
